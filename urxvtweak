@@ -1,0 +1,90 @@
+#!/bin/bash
+
+me=`basename $0`
+
+usage() {
+    test -n "$*" && echo "$*"
+
+    cat <<EOT
+$me - modify settings in the current rxvt-unicode window
+
+usage: $me [OPTIONS]...
+
+OPTIONS:
+  -bg  <color>  - set text background color
+  -fg  <color>  - set text foreground color
+  -bc  <color>  - set border color
+  -cc  <color>  - set cursor color
+  -mc  <color>  - set mouse color
+  -hbg <color>  - set highlight background color
+  -hfg <color>  - set highlight foreground color
+  -itc <color>  - set italic text color
+  -btc <color>  - set bold text color
+  -utc <color>  - set underline text color
+  -bpc <color>  - set background pixmap tint color
+
+  -wit <text> - change window title and icon name
+  -it  <text> - change icon name
+  -wt  <text> - change window title
+  -cdc <list> - change defined color(s).  <list> is a semi-colon separated
+                sequence of one or more semi-colon separated number/name pairs 
+                where number is an index to a color and name is the name of a 
+                color.  Each pair causes the numbered color to be changed to 
+                name.  Numbers 0-7 correspond to low-intensity (normal) colors 
+                and 8-15 correspond to high-intensity colors.  0=black, 1=red, 
+                2=green, 3=yellow, 4=blue, 5=magenta, 6=cyan, 7=white
+
+EXAMPLES:
+    $me -bg red       # set background to 'red'
+    $me -bg 1         # set background to color #1
+    $me -bg \#f00     # set background to 0xff0000
+    $me -bg \#ff0000  # set background to 0xff0000
+
+    # set background to 'blue', foreground to 0xffffff, and border to 'orange'
+    $me -bg blue -fg \#fff -bc orange  
+
+    # Change color 15 (normally high-intensity white) to 0xff0000
+    $me -cdc 15\;\#f00
+
+    # Change color 7 (normally white) to red
+    $me -cdc 7\;red
+EOT
+    exit 0;
+}
+
+test -z "$1" && usage
+
+while [ -n "$1" ]  ; do
+    cmd=
+    opt="$1"
+    case "$opt" in
+        -bc)  cmd=708 ;;
+        -bg)  cmd=11  ;;
+        -fg)  cmd=10  ;;
+        -cc)  cmd=12  ;;
+        -mc)  cmd=13  ;;
+        -hbg) cmd=17  ;;
+        -hfg) cmd=19  ;;
+        -itc) cmd=704 ;;
+        -btc) cmd=706 ;;
+        -utc) cmd=707 ;;
+        -bpc) cmd=705 ;;
+
+        -wit) cmd=0 ;;
+        -it)  cmd=1 ;;
+        -wt)  cmd=2 ;;
+        -cdc) cmd=4 ;;
+
+        *) usage "Invalid option: $opt" ;;
+    esac
+
+    test -n "$cmd" || usage "No command given?"
+
+    shift
+    val="$1";
+    test -n "$val" || usage "No value given for $opt"
+
+    shift
+
+    printf "\033]$cmd;$val\234"
+done
